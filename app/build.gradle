@@ -15,7 +15,7 @@ idea.module {
 
 android {
     namespace 'emu.skyline'
-    compileSdk 33
+    compileSdk 34
 
     var isBuildSigned = (System.getenv("CI") == "true") && (System.getenv("IS_SKYLINE_SIGNED") == "true")
 
@@ -23,7 +23,7 @@ android {
         applicationId "skyline.emu"
 
         minSdk 29
-        targetSdk 33
+        targetSdk 34
 
         versionCode 3
         versionName "0.0.3"
@@ -50,7 +50,7 @@ android {
     }
 
     /* JVM Bytecode Options */
-    def javaVersion = JavaVersion.VERSION_1_8
+    def javaVersion = JavaVersion.VERSION_17
     kotlinOptions {
         jvmTarget = javaVersion.toString()
         freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
@@ -133,7 +133,7 @@ android {
     }
 
     /* NDK and CMake */
-    ndkVersion '25.0.8775105'
+    ndkVersion '25.2.9519653'
     externalNativeBuild {
         cmake {
             version '3.22.1+'
@@ -164,17 +164,17 @@ android {
 
 dependencies {
     /* Google  */
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.preference:preference-ktx:1.2.0'
-    implementation 'androidx.activity:activity-ktx:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.activity:activity-ktx:1.7.2'
+    implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.documentfile:documentfile:1.0.1'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.5.1"
-    implementation 'androidx.fragment:fragment-ktx:1.5.5'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.1"
+    implementation 'androidx.fragment:fragment-ktx:1.6.1'
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
     implementation 'com.google.android.flexbox:flexbox:3.0.0'

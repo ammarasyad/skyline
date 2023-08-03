@@ -32,7 +32,6 @@ import androidx.core.view.updateMargins
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import emu.skyline.BuildConfig
 import emu.skyline.applet.swkbd.SoftwareKeyboardConfig
 import emu.skyline.applet.swkbd.SoftwareKeyboardDialog
 import emu.skyline.data.AppItem
@@ -578,7 +577,7 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
                 } else {
                     for (id in InputDevice.getDeviceIds()) {
                         val device = InputDevice.getDevice(id)
-                        if (device.descriptor == inputManager.controllers[index]!!.rumbleDeviceDescriptor) {
+                        if (device!!.descriptor == inputManager.controllers[index]!!.rumbleDeviceDescriptor) {
                             val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 device.vibratorManager.defaultVibrator
                             } else {
