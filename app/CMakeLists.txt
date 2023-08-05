@@ -10,11 +10,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 set(source_DIR ${CMAKE_SOURCE_DIR}/src/main/cpp)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing -Wno-unused-command-line-argument -fwrapv")
-set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -flto=full -fno-stack-protector -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -flto=full -fno-stack-protector -DNDEBUG -march=armv9-a+simd")
 
 # Build all libraries with -Ofast but with default debug data (-g) for debug and reldebug builds
-set(CMAKE_CXX_FLAGS_DEBUG "-Ofast")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Ofast")
+set(CMAKE_CXX_FLAGS_DEBUG "-Ofast -march=armv9-a+simd")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Ofast -march=armv9-a+simd")
 
 # libcxx
 set(ANDROID_STL "none")
@@ -124,9 +124,9 @@ include_directories("libraries/renderdoc")
 include_directories("libraries/thread-pool")
 
 # Build Skyline with full debugging data and -Og for debug builds
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -glldb -gdwarf-5 -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -glldb -gdwarf-5 -fno-omit-frame-pointer -march=armv9-a+simd")
 # Build Skyline with full debugging data and some optimizations for reldebug builds, build speed is pioritised
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O1 -g3 -glldb -gdwarf-5 -fno-omit-frame-pointer -fno-stack-protector")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O1 -g3 -glldb -gdwarf-5 -fno-omit-frame-pointer -fno-stack-protector -march=armv9-a+simd")
 
 # Include headers from libraries as system headers to silence warnings from them
 function(target_link_libraries_system target)
@@ -173,9 +173,10 @@ add_library(skyline SHARED
         ${source_DIR}/skyline/kernel/ipc.cpp
         ${source_DIR}/skyline/kernel/svc.cpp
         ${source_DIR}/skyline/kernel/types/KProcess.cpp
+        ${source_DIR}/skyline/kernel/types/KMemory.cpp
         ${source_DIR}/skyline/kernel/types/KThread.cpp
+        ${source_DIR}/skyline/kernel/types/KTransferMemory.cpp
         ${source_DIR}/skyline/kernel/types/KSharedMemory.cpp
-        ${source_DIR}/skyline/kernel/types/KPrivateMemory.cpp
         ${source_DIR}/skyline/kernel/types/KSyncObject.cpp
         ${source_DIR}/skyline/audio.cpp
         ${source_DIR}/skyline/gpu.cpp

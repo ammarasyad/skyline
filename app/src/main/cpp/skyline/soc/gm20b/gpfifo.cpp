@@ -63,7 +63,7 @@ namespace skyline::soc::gm20b {
         /**
          * @brief Checks if a method is 'pure' i.e. does not touch macro or GPFIFO methods
          */
-        bool Pure() const {
+        [[nodiscard]] bool Pure() const {
             u32 size{[&]() -> u32  {
                 switch (secOp) {
                     case SecOp::NonIncMethod:
@@ -185,7 +185,7 @@ namespace skyline::soc::gm20b {
                 pushBufferData.resize(gpEntry.size);
                 channelCtx.asCtx->gmmu.Read<u32>(pushBufferData, gpEntry.Address());
                 pushBufferCopied = true;
-                return span(pushBufferData);
+                return {pushBufferData};
             }
         }()};
 

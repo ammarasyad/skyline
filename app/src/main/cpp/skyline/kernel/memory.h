@@ -17,7 +17,7 @@ namespace skyline {
             /**
              * @brief Initializes all permissions to false
              */
-            constexpr Permission() : r(), w(), x() {}
+            constexpr Permission() : raw() {}
 
             /**
              * @brief Initializes permissions where the first three bits correspond to RWX
@@ -62,13 +62,18 @@ namespace skyline {
          * @url https://switchbrew.org/wiki/SVC#MemoryAttribute
          */
         union MemoryAttribute {
+
+            constexpr MemoryAttribute() : value() {}
+
+            constexpr explicit MemoryAttribute(u8 value) : value(value) {}
+
             struct {
                 bool isBorrowed : 1; //!< This is required for async IPC user buffers
                 bool isIpcLocked : 1; //!< True when IpcRefCount > 0
                 bool isDeviceShared : 1; //!< True when DeviceRefCount > 0
                 bool isUncached : 1; //!< This is used to disable memory caching to share memory with the GPU
             };
-            u32 value{};
+            u8 value;
         };
 
         /**
@@ -93,26 +98,28 @@ namespace skyline {
         enum class MemoryType : u8 {
             Unmapped = 0x0,
             Io = 0x1,
-            Normal = 0x2,
-            CodeStatic = 0x3,
+            Static = 0x2,
+            Code = 0x3,
             CodeMutable = 0x4,
             Heap = 0x5,
             SharedMemory = 0x6,
             Alias = 0x7,
-            ModuleCodeStatic = 0x8,
-            ModuleCodeMutable = 0x9,
+            AliasCode = 0x8,
+            AliasCodeData = 0x9,
             Ipc = 0xA,
             Stack = 0xB,
             ThreadLocal = 0xC,
-            TransferMemoryIsolated = 0xD,
-            TransferMemory = 0xE,
-            ProcessMemory = 0xF,
+            Transfered = 0xD,
+            SharedTransfered = 0xE,
+            SharedCode = 0xF,
             Reserved = 0x10,
             NonSecureIpc = 0x11,
             NonDeviceIpc = 0x12,
             KernelStack = 0x13,
             CodeReadOnly = 0x14,
             CodeWritable = 0x15,
+            Coverage = 0x16,
+            Insecure = 0x17
         };
 
         /**
@@ -121,7 +128,7 @@ namespace skyline {
         union MemoryState {
             constexpr MemoryState(const u32 value) : value(value) {}
 
-            constexpr MemoryState() : value(0) {}
+            constexpr MemoryState() : value() {}
 
             constexpr bool operator==(const MemoryState &other) const {
                 return value == other.value;
@@ -138,7 +145,6 @@ namespace skyline {
                 bool ipcSendAllowed : 1; //!< If this block is allowed to be sent as an IPC buffer with flags=0
                 bool nonDeviceIpcSendAllowed : 1; //!< If this block is allowed to be sent as an IPC buffer with flags=3
                 bool nonSecureIpcSendAllowed : 1; //!< If this block is allowed to be sent as an IPC buffer with flags=1
-                bool _pad0_ : 1;
                 bool processPermissionChangeAllowed : 1; //!< If the application can use svcSetProcessMemoryPermission on this block
                 bool mapAllowed : 1; //!< If the application can use svcMapMemory on this block
                 bool unmapProcessCodeMemoryAllowed : 1; //!< If the application can use svcUnmapProcessCodeMemory on this block
@@ -152,7 +158,7 @@ namespace skyline {
                 bool attributeChangeAllowed : 1; //!< If the application can use svcSetMemoryAttribute on this block
                 bool codeMemoryAllowed : 1; //!< If the application can use svcCreateCodeMemory on this block
             };
-            u32 value{};
+            u32 value;
         };
         static_assert(sizeof(MemoryState) == sizeof(u32));
 
@@ -163,7 +169,8 @@ namespace skyline {
         namespace states {
             constexpr MemoryState Unmapped{0x00000000};
             constexpr MemoryState Io{0x00002001};
-            constexpr MemoryState CodeStatic{0x00DC7E03};
+            constexpr MemoryState Static{0x00042002};
+            constexpr MemoryState Code{0x00DC7E03};
             constexpr MemoryState CodeMutable{0x03FEBD04};
             constexpr MemoryState Heap{0x037EBD05};
             constexpr MemoryState SharedMemory{0x00402006};
@@ -173,8 +180,8 @@ namespace skyline {
             constexpr MemoryState Ipc{0x005C3C0A};
             constexpr MemoryState Stack{0x005C3C0B};
             constexpr MemoryState ThreadLocal{0x0040200C};
-            constexpr MemoryState TransferMemoryIsolated{0x015C3C0D};
-            constexpr MemoryState TransferMemory{0x005C380E};
+            constexpr MemoryState Transfered{0x015C3C0D};
+            constexpr MemoryState SharedTransfered{0x005C380E};
             constexpr MemoryState SharedCode{0x0040380F};
             constexpr MemoryState Reserved{0x00000010};
             constexpr MemoryState NonSecureIpc{0x005C3811};
@@ -182,6 +189,8 @@ namespace skyline {
             constexpr MemoryState KernelStack{0x00002013};
             constexpr MemoryState CodeReadOnly{0x00402214};
             constexpr MemoryState CodeWritable{0x00402015};
+            constexpr MemoryState Coverage{0x00002016};
+            constexpr MemoryState Insecure{0x05583817};
         }
 
         enum class AddressSpaceType : u8 {
@@ -194,15 +203,14 @@ namespace skyline {
 
     namespace kernel {
         struct ChunkDescriptor {
-            u8 *ptr;
+            bool isSrcMergeAllowed;
             size_t size;
             memory::Permission permission;
             memory::MemoryState state;
             memory::MemoryAttribute attributes;
-            kernel::type::KMemory *memory{};
 
             constexpr bool IsCompatible(const ChunkDescriptor &chunk) const {
-                return chunk.permission == permission && chunk.state.value == state.value && chunk.attributes.value == attributes.value && chunk.memory == memory;
+                return chunk.permission == permission && chunk.state.value == state.value && chunk.attributes.value == attributes.value && isSrcMergeAllowed;
             }
         };
 
@@ -212,7 +220,10 @@ namespace skyline {
         class MemoryManager {
           private:
             const DeviceState &state;
-            std::vector<ChunkDescriptor> chunks;
+            std::map<u8 *, ChunkDescriptor> chunks;
+            std::vector<std::shared_ptr<type::KMemory>> memoryRefs;
+            void MapInternal(const std::pair<u8 *, ChunkDescriptor> &chunk);
+            void ForeachChunk(span<u8> memory, auto editCallback);
 
           public:
             memory::AddressSpaceType addressSpaceType{};
@@ -225,11 +236,13 @@ namespace skyline {
             span<u8> stack{};
             span<u8> tlsIo{}; //!< TLS/IO
 
+            size_t processHeapSize{};
+
             std::shared_mutex mutex; //!< Synchronizes any operations done on the VMM, it's locked in shared mode by readers and exclusive mode by writers
 
-            MemoryManager(const DeviceState &state);
+            MemoryManager(const DeviceState &state) noexcept;
 
-            ~MemoryManager();
+            ~MemoryManager() noexcept;
 
             /**
              * @note This should be called before any mappings in the VMM or calls to InitalizeRegions are done
@@ -254,15 +267,45 @@ namespace skyline {
              */
             span<u8> CreateMirrors(const std::vector<span<u8>> &regions);
 
+            void SetRegionBorrowed(span<u8> memory, bool value);
+
+            void SetRegionCPUCaching(span<u8> memory, bool value);
+
+            void SetRegionPermission(span<u8> memory, memory::Permission permission);
+
             /**
              * @brief Frees the underlying physical memory for all full pages in the contained mapping
              * @note All subsequent accesses to freed memory will return 0s
              */
-            void FreeMemory(span<u8> memory);
+            static void FreeMemory(span<u8> memory);
 
-            void InsertChunk(const ChunkDescriptor &chunk);
+            std::optional<std::pair<u8 *, ChunkDescriptor>> Get(u8 *addr);
 
-            std::optional<ChunkDescriptor> Get(void *ptr);
+            void MapCodeMemory(span<u8> memory, memory::Permission permission);
+
+            void MapMutableCodeMemory(span<u8> memory);
+
+            void MapStackMemory(span<u8> memory);
+
+            void MapHeapMemory(span<u8> memory);
+
+            void MapSharedMemory(span<u8> memory, memory::Permission permission);
+
+            void MapTransferMemory(span<u8> memory, memory::Permission permission);
+
+            void MapThreadLocalMemory(span<u8> memory);
+
+            void Reserve(span<u8> memory);
+
+            void UnmapMemory(span<u8> memory);
+
+            void SvcMapMemory(span<u8> src, span<u8> dst);
+
+            void SvcUnmapMemory(span<u8> src, span<u8> dst);
+
+            void AddReference(std::shared_ptr<type::KMemory> memory);
+
+            void RemoveReference(const std::shared_ptr<type::KMemory>& memory);
 
             /**
              * @return The cumulative size of all heap (Physical Memory + Process Heap) memory mappings, the code region and the main thread stack in bytes
@@ -278,7 +321,7 @@ namespace skyline {
             /**
              * @return If the supplied region is contained withing the accessible guest address space
              */
-            bool AddressSpaceContains(span<u8> region) const {
+            constexpr bool AddressSpaceContains(span<u8> region) const {
                 if (addressSpaceType == memory::AddressSpaceType::AddressSpace36Bit)
                     return codeBase36Bit.contains(region) || base.contains(region);
                 else
@@ -287,3 +330,11 @@ namespace skyline {
         };
     }
 }
+
+template<> struct fmt::formatter<skyline::memory::Permission> {
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
+
+    template<typename FormatContext>
+    constexpr auto format(skyline::memory::Permission const &permission, FormatContext &ctx) { return fmt::format_to(ctx.out(), "{}{}{}", permission.r ? 'R' : '-', permission.w ? 'W' : '-', permission.x ? 'X' : '-'); }
+};

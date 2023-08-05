@@ -72,7 +72,7 @@ namespace skyline::service::ro {
                 continue;
 
             auto desc{state.process->memory.Get(ptr)};
-            if (!desc || desc->state != memory::states::Unmapped || (static_cast<size_t>(ptr - desc->ptr) + size) < desc->size)
+            if (!desc || desc->second.state != memory::states::Unmapped || (static_cast<size_t>(ptr - desc->first) + size) < desc->second.size)
                 continue;
         } while (!ptr);
 
@@ -85,26 +85,21 @@ namespace skyline::service::ro {
     Result IRoInterface::UnloadModule(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         Logger::Error("Module unloading is unimplemented!");
         return {};
-
     }
 
     Result IRoInterface::RegisterModuleInfo(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         return {};
-
     }
 
     Result IRoInterface::UnregisterModuleInfo(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         return {};
-
     }
 
     Result IRoInterface::RegisterProcessHandle(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         return {};
-
     }
 
     Result IRoInterface::RegisterProcessModuleInfo(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         return {};
-
     }
 }

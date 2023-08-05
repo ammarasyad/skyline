@@ -13,6 +13,12 @@ namespace skyline::kernel::svc {
     void SetHeapSize(const DeviceState &state);
 
     /**
+     * @brief Sets the process heap to a given size, it can both extend and shrink the heap
+     * @url https://switchbrew.org/wiki/SVC#SetMemoryPermission
+     */
+    void SetMemoryPermission(const DeviceState &state);
+
+    /**
      * @brief Change attribute of page-aligned memory region, this is used to turn on/off caching for a given memory area
      * @url https://switchbrew.org/wiki/SVC#SetMemoryAttribute
      */
@@ -269,7 +275,7 @@ namespace skyline::kernel::svc {
     static constexpr std::array<SvcDescriptor, 0x80> SvcTable{
         SVC_NONE, // 0x00 (Does not exist)
         SVC_ENTRY(SetHeapSize), // 0x01
-        SVC_NONE, // 0x02
+        SVC_ENTRY(SetMemoryPermission), // 0x02
         SVC_ENTRY(SetMemoryAttribute), // 0x03
         SVC_ENTRY(MapMemory), // 0x04
         SVC_ENTRY(UnmapMemory), // 0x05

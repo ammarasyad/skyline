@@ -11,22 +11,22 @@ namespace skyline::kernel::type {
      * @brief The base kernel memory object that other memory classes derieve from
      */
     class KMemory : public KObject {
+      private:
+        int fileDescriptor; //!< The file descriptor of the memory object
+
       public:
-        KMemory(const DeviceState &state, KType objectType, span <u8> guest) : KObject(state, objectType), guest(guest) {}
+        KMemory(const DeviceState &state, KType objectType, size_t size);
 
         /**
          * @return A span representing the memory object on the guest
          */
         span <u8> guest;
+        span <u8> host;
 
-        /**
-         * @brief Updates the permissions of a block of mapped memory
-         * @param ptr The starting address to change the permissions at
-         * @param size The size of the partition to change the permissions of
-         * @param permission The new permissions to be set for the memory
-         */
-        virtual void UpdatePermission(span <u8> map, memory::Permission permission) = 0;
+        virtual u8 *Map(span<u8> map, memory::Permission permission);
 
-        virtual ~KMemory() = default;
+        virtual void Unmap(span<u8> map);
+
+        virtual ~KMemory();
     };
 }
