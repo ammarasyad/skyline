@@ -125,7 +125,7 @@ include_directories("libraries/thread-pool")
 
 # Build Skyline with full debugging data and -Og for debug builds
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -glldb -gdwarf-5 -fno-omit-frame-pointer -march=armv9-a+simd")
-# Build Skyline with full debugging data and some optimizations for reldebug builds, build speed is pioritised
+# Build Skyline with full debugging data and some optimizations for reldebug builds, build speed is prioritised
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O1 -g3 -glldb -gdwarf-5 -fno-omit-frame-pointer -fno-stack-protector -march=armv9-a+simd")
 
 # Include headers from libraries as system headers to silence warnings from them
@@ -343,6 +343,7 @@ add_library(skyline SHARED
         ${source_DIR}/skyline/services/fssrv/IFileSystemProxy.cpp
         ${source_DIR}/skyline/services/fssrv/IFileSystem.cpp
         ${source_DIR}/skyline/services/fssrv/IFile.cpp
+        ${source_DIR}/skyline/services/fssrv/ISaveDataInfoReader.cpp
         ${source_DIR}/skyline/services/fssrv/IStorage.cpp
         ${source_DIR}/skyline/services/fssrv/IDirectory.cpp
         ${source_DIR}/skyline/services/fssrv/IMultiCommitManager.cpp
@@ -396,6 +397,8 @@ add_library(skyline SHARED
         ${source_DIR}/skyline/services/spl/IRandomInterface.cpp
         ${source_DIR}/skyline/services/ssl/ISslService.cpp
         ${source_DIR}/skyline/services/ssl/ISslContext.cpp
+        ${source_DIR}/skyline/services/psm/IPsmServer.cpp
+        ${source_DIR}/skyline/services/psm/IPsmSession.cpp
         ${source_DIR}/skyline/services/prepo/IPrepoService.cpp
         ${source_DIR}/skyline/services/mmnv/IRequest.cpp
         ${source_DIR}/skyline/services/mii/IStaticService.cpp
@@ -407,4 +410,4 @@ target_include_directories(skyline PRIVATE ${source_DIR}/skyline)
 target_compile_options(skyline PRIVATE -Wall -Wno-unknown-attributes -Wno-c++20-extensions -Wno-c++17-extensions -Wno-c99-designator -Wno-reorder -Wno-missing-braces -Wno-unused-variable -Wno-unused-private-field -Wno-dangling-else -Wconversion -fsigned-bitfields)
 
 target_link_libraries(skyline PRIVATE shader_recompiler audio_core)
-target_link_libraries_system(skyline android perfetto fmt lz4_static tzcode vkma mbedcrypto opus Boost::intrusive Boost::container range-v3 adrenotools tsl::robin_map)
+target_link_libraries_system(skyline android perfetto fmt lz4_static tzcode vkma mbedcrypto opus Boost::intrusive Boost::container Boost::preprocessor range-v3 adrenotools tsl::robin_map)

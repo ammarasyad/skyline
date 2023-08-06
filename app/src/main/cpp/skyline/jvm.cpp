@@ -64,7 +64,11 @@ namespace skyline {
           closeKeyboardId{environ->GetMethodID(instanceClass, "closeKeyboard", "(Lemu/skyline/applet/swkbd/SoftwareKeyboardDialog;)V")},
           showValidationResultId{environ->GetMethodID(instanceClass, "showValidationResult", "(Lemu/skyline/applet/swkbd/SoftwareKeyboardDialog;ILjava/lang/String;)I")},
           getVersionCodeId{environ->GetMethodID(instanceClass, "getVersionCode", "()I")},
-          getIntegerValueId{environ->GetMethodID(environ->FindClass("java/lang/Integer"), "intValue", "()I")} {
+          getIntegerValueId{environ->GetMethodID(environ->FindClass("java/lang/Integer"), "intValue", "()I")},
+          getBatteryLevelPercentageId{environ->GetMethodID(instanceClass, "getBatteryLevelPercentage", "()I")},
+          getChargingTypeId{environ->GetMethodID(instanceClass, "getChargingType", "()I")},
+          getFreeSpaceId{environ->GetMethodID(instanceClass, "getFreeSpace", "()J")},
+          getTotalSpaceId{environ->GetMethodID(instanceClass, "getTotalSpace", "()J")} {
         env.Initialize(environ);
     }
 
@@ -139,6 +143,22 @@ namespace skyline {
 
     i32 JvmManager::GetVersionCode() {
         return env->CallIntMethod(instance, getVersionCodeId);
+    }
+
+    i32 JvmManager::GetBatteryLevelPercentage() {
+        return env->CallIntMethod(instance, getBatteryLevelPercentageId);
+    }
+
+    i32 JvmManager::GetChargingType() {
+        return env->CallIntMethod(instance, getChargingTypeId);
+    }
+
+    i64 JvmManager::GetFreeSpace() {
+        return env->CallLongMethod(instance, getFreeSpaceId);
+    }
+
+    i64 JvmManager::GetTotalSpace() {
+        return env->CallLongMethod(instance, getTotalSpaceId);
     }
 
     JvmManager::KeyboardCloseResult JvmManager::ShowValidationResult(jobject dialog, KeyboardTextCheckResult checkResult, std::u16string message) {

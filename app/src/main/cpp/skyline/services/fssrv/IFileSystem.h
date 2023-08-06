@@ -67,6 +67,8 @@ namespace skyline::service::fssrv {
          */
         Result GetFreeSpaceSize(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
 
+        Result GetTotalSpaceSize(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
+
         SERVICE_DECL(
             SFUNC(0x0, IFileSystem, CreateFile),
             SFUNC(0x1, IFileSystem, DeleteFile),
@@ -76,7 +78,8 @@ namespace skyline::service::fssrv {
             SFUNC(0x8, IFileSystem, OpenFile),
             SFUNC(0x9, IFileSystem, OpenDirectory),
             SFUNC(0xA, IFileSystem, Commit),
-            SFUNC(0xB, IFileSystem, GetFreeSpaceSize)
+            SFUNC(0xB, IFileSystem, GetFreeSpaceSize),
+            SFUNC(0xC, IFileSystem, GetTotalSpaceSize)
         )
     };
 }

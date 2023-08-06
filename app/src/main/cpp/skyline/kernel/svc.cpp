@@ -208,7 +208,7 @@ namespace skyline::kernel::svc {
         state.process->memory.SvcUnmapMemory(span<u8>(source, size), span<u8>(destination, size));
         state.process->memory.UnmapMemory(span<u8>(destination, size));
 
-        Logger::Debug("Unmapped range 0x{:X} - 0x{:X} to 0x{:X} - 0x{:X} (Size: 0x{:X} bytes)", source, source + size, destination, destination + size, size);
+        Logger::Debug("Unmapped range 0x{:X} - 0x{:X} to 0x{:X} - 0x{:X} (Size: 0x{:X} bytes)", destination, destination + size, source, source + size, size);
         state.ctx->gpr.w0 = Result{};
     }
 

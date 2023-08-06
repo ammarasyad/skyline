@@ -182,6 +182,14 @@ namespace skyline {
          */
         i32 GetVersionCode();
 
+        i32 GetBatteryLevelPercentage();
+
+        i32 GetChargingType();
+
+        i64 GetFreeSpace();
+
+        i64 GetTotalSpace();
+
       private:
         jmethodID initializeControllersId;
         jmethodID vibrateDeviceId;
@@ -193,5 +201,10 @@ namespace skyline {
         jmethodID getVersionCodeId;
 
         jmethodID getIntegerValueId;
+        jmethodID getBatteryLevelPercentageId;
+        jmethodID getChargingTypeId;
+
+        jmethodID getFreeSpaceId;
+        jmethodID getTotalSpaceId;
     };
 }

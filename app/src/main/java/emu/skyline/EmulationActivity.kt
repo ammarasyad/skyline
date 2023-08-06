@@ -681,4 +681,31 @@ class EmulationActivity : AppCompatActivity(), SurfaceHolder.Callback, View.OnTo
     override fun onDisplayAdded(displayId : Int) {}
 
     override fun onDisplayRemoved(displayId : Int) {}
+
+    @Suppress("Unused")
+    fun getBatteryLevelPercentage() : Int {
+        val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+    }
+
+    @Suppress("Unused")
+    fun getChargingType() : Int {
+        return when (registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1) {
+            BatteryManager.BATTERY_STATUS_CHARGING -> 1
+            BatteryManager.BATTERY_STATUS_FULL -> 2
+            else -> 0
+        }
+    }
+
+    @Suppress("Unused")
+    fun getFreeSpace() : Long {
+        val stat = StatFs(filesDir.absolutePath)
+        return stat.availableBlocksLong * stat.blockSizeLong
+    }
+
+    @Suppress("Unused")
+    fun getTotalSpace() : Long {
+        val stat = StatFs(filesDir.absolutePath)
+        return stat.blockCountLong * stat.blockSizeLong
+    }
 }

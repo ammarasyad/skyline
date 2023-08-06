@@ -32,6 +32,8 @@ namespace skyline::service::nifm {
          */
         Result GetCurrentIpAddress(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
 
+        Result GetInternetConnectionStatus(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response);
+
         /**
          * @url https://switchbrew.org/wiki/Network_Interface_services#IsAnyInternetRequestAccepted
          */
@@ -41,6 +43,7 @@ namespace skyline::service::nifm {
             SFUNC(0x1, IGeneralService, CreateScanRequest),
             SFUNC(0x4, IGeneralService, CreateRequest),
             SFUNC(0xC, IGeneralService, GetCurrentIpAddress),
+            SFUNC(0x12, IGeneralService, GetInternetConnectionStatus),
             SFUNC(0x15, IGeneralService, IsAnyInternetRequestAccepted)
         )
     };

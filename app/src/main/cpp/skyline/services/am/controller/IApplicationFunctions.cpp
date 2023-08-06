@@ -60,7 +60,7 @@ namespace skyline::service::am {
 
     Result IApplicationFunctions::SetTerminateResult(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         auto result{request.Pop<Result>()};
-        Logger::Info("App set termination result: {}", result.raw);
+        Logger::Info("App set termination result: 0x{:X}, module: {}, id: {}", result.raw, static_cast<u16>(result.module), static_cast<u16>(result.id));
         return {};
     }
 

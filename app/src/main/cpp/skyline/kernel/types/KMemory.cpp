@@ -8,7 +8,8 @@
 
 namespace skyline::kernel::type {
     KMemory::KMemory(const DeviceState &state, KType objectType, size_t size) : KObject(state, objectType), guest() {
-        if ((fileDescriptor = ASharedMemory_create(objectType == KType::KSharedMemory ? "HOS-KSharedMemory" : "HOS-KTransferMemory", size)) < 0) [[unlikely]]
+        fileDescriptor = ASharedMemory_create(objectType == KType::KSharedMemory ? "HOS-KSharedMemory" : "HOS-KTransferMemory", size);
+        if (fileDescriptor < 0) [[unlikely]]
                 throw exception("Failed to create shared memory object: {}", fileDescriptor);
 
         u8 *hostPtr{static_cast<u8 *>(mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileDescriptor, 0))};

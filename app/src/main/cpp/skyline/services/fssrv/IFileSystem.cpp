@@ -5,6 +5,7 @@
 #include "IFile.h"
 #include "IDirectory.h"
 #include "IFileSystem.h"
+#include "jvm.h"
 
 namespace skyline::service::fssrv {
     IFileSystem::IFileSystem(std::shared_ptr<vfs::FileSystem> backing, const DeviceState &state, ServiceManager &manager) : backing(std::move(backing)), BaseService(state, manager) {}
@@ -87,8 +88,12 @@ namespace skyline::service::fssrv {
     }
 
     Result IFileSystem::GetFreeSpaceSize(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
-        //TODO: proper implementation for GetFreeSpaceSize
-        response.Push<u64>(90000000);
+        response.Push<u64>(static_cast<u64>(state.jvm->GetFreeSpace()));
+        return {};
+    }
+
+    Result IFileSystem::GetTotalSpaceSize(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        response.Push<u64>(static_cast<u64>(state.jvm->GetTotalSpace()));
         return {};
     }
 }
