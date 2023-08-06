@@ -399,6 +399,8 @@ add_library(skyline SHARED
         ${source_DIR}/skyline/services/ssl/ISslContext.cpp
         ${source_DIR}/skyline/services/psm/IPsmServer.cpp
         ${source_DIR}/skyline/services/psm/IPsmSession.cpp
+        ${source_DIR}/skyline/services/clkrst/IClkrstManager.cpp
+        ${source_DIR}/skyline/services/clkrst/IClkrstSession.cpp
         ${source_DIR}/skyline/services/prepo/IPrepoService.cpp
         ${source_DIR}/skyline/services/mmnv/IRequest.cpp
         ${source_DIR}/skyline/services/mii/IStaticService.cpp

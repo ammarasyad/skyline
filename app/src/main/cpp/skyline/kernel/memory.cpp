@@ -12,8 +12,9 @@ namespace skyline::kernel {
     MemoryManager::~MemoryManager() noexcept {
         if (base.valid() && !base.empty())
             munmap(reinterpret_cast<void *>(base.data()), base.size());
-        if (addressSpaceType != memory::AddressSpaceType::AddressSpace39Bit && codeBase36Bit.valid() && !codeBase36Bit.empty())
-            munmap(reinterpret_cast<void *>(codeBase36Bit.data()), codeBase36Bit.size());
+        if (addressSpaceType != memory::AddressSpaceType::AddressSpace39Bit)
+            if (codeBase36Bit.valid() && !codeBase36Bit.empty())
+                munmap(reinterpret_cast<void *>(codeBase36Bit.data()), codeBase36Bit.size());
     }
 
     constexpr size_t RegionAlignment{1ULL << 21}; //!< The minimum alignment of a HOS memory region
@@ -53,12 +54,13 @@ namespace skyline::kernel {
                 auto temp{std::next(firstChunkBase)};
 
                 while (temp->first != lastChunkBase->first) {
-                    if ((temp->second.state != memory::states::Unmapped) != unmapped) {
+                    auto tmp{temp++};
+                    if ((tmp->second.state != memory::states::Unmapped) != unmapped) {
                         protection = true;
-                        break;
+//                        break;
                     }
 
-                    temp++;
+//                    temp++;
                 }
 
                 chunks.erase(std::next(firstChunkBase), lastChunkBase);
@@ -104,7 +106,7 @@ namespace skyline::kernel {
                 chunks.insert(chunk);
         }
 
-        if (protection) [[unlikely]]
+        if (protection)
             if (mprotect(chunk.first, chunk.second.size, !unmapped ? PROT_READ | PROT_WRITE | PROT_EXEC : PROT_NONE)) [[unlikely]]
                 Logger::Warn("Failed to set memory protection: {}", strerror(errno));
     }
@@ -117,7 +119,7 @@ namespace skyline::kernel {
         size_t size{memory.size()};
 
         if (chunkBase->first < memory.data()) [[unlikely]] {
-            size_t chunkSize{std::min<size_t>(chunkBase->second.size - static_cast<size_t>(memory.data() - chunkBase->first), size)};
+            size_t chunkSize{std::min<size_t>(chunkBase->second.size - static_cast<size_t>(memory.data() - chunkBase->first), memory.size())};
 
             std::pair<u8 *, ChunkDescriptor> temp{memory.data(), chunkBase->second};
             temp.second.size = chunkSize;
@@ -132,8 +134,8 @@ namespace skyline::kernel {
 
             if (size >= chunkBase->second.size) [[likely]] {
                 editCallback(temp);
-                chunkBase++;
                 size -= chunkBase->second.size;
+                chunkBase++;
             } else {
                 temp.second.size = size;
                 editCallback(temp);
@@ -169,11 +171,11 @@ namespace skyline::kernel {
                 break;
         } while ((line = maps.find_first_of('\n', line)) != std::string::npos && line++);
 
-        if (!region.valid())
+        if (!region.valid()) [[unlikely]]
             throw exception("Allocation failed");
 
         auto result{mmap(reinterpret_cast<void *>(region.data()), size, PROT_WRITE, MAP_FIXED | MAP_ANONYMOUS | MAP_SHARED, -1, 0)};
-        if (result == MAP_FAILED)
+        if (result == MAP_FAILED) [[unlikely]]
             throw exception("Failed to mmap guest address space: {}", strerror(errno));
 
         return region;
@@ -189,8 +191,9 @@ namespace skyline::kernel {
                 throw exception("32-bit address spaces are not supported");
 
             case memory::AddressSpaceType::AddressSpace36Bit: {
-                addressSpace = span<u8>{reinterpret_cast<u8 *>(0x8000000), (1ULL << 39) - 0x8000000};
-                baseSize = 0x180000000 + 0x78000000 + 0x180000000;
+                addressSpace = span<u8>{reinterpret_cast<u8 *>(0), (1ULL << 36)};
+                baseSize = 0x180000000 + 0x180000000;
+                break;
             }
 
             case memory::AddressSpaceType::AddressSpace39Bit: {
@@ -269,7 +272,7 @@ namespace skyline::kernel {
                 throw exception("Regions initialized without VMM initialization");
         }
 
-        if (codeRegion.size() > code.size())
+        if (codeRegion.size() > code.size()) [[unlikely]]
             throw exception("Code region ({}) is smaller than mapped code size ({})", code.size(), codeRegion.size());
 
         Logger::Debug("Region Map:\nVMM Base: 0x{:X}\nCode Region: 0x{:X} - 0x{:X} (Size: 0x{:X})\nAlias Region: 0x{:X} - 0x{:X} (Size: 0x{:X})\nHeap Region: 0x{:X} - 0x{:X} (Size: 0x{:X})\nStack Region: 0x{:X} - 0x{:X} (Size: 0x{:X})\nTLS/IO Region: 0x{:X} - 0x{:X} (Size: 0x{:X})", base.data(), code.data(), code.end().base(), code.size(), alias.data(), alias.end().base(), alias.size(), heap.data(), heap.end().base(), heap.size(), stack.data(), stack.end().base(), stack.size(), tlsIo.data(), tlsIo.end().base(), tlsIo.size());
@@ -287,7 +290,7 @@ namespace skyline::kernel {
         if (mirror == MAP_FAILED) [[unlikely]]
             throw exception("Failed to create mirror mapping at 0x{:X}-0x{:X} (0x{:X}): {}", mapping.data(), mapping.end().base(), offset, strerror(errno));
 
-        mprotect(mirror, mapping.size(), PROT_READ | PROT_WRITE | PROT_EXEC);
+        mprotect(mirror, mapping.size(), PROT_READ | PROT_WRITE);
 
         return span<u8>{reinterpret_cast<u8 *>(mirror), mapping.size()};
     }
@@ -314,7 +317,7 @@ namespace skyline::kernel {
             if (mirror == MAP_FAILED) [[unlikely]]
                 throw exception("Failed to create mirror mapping at 0x{:X}-0x{:X} (0x{:X}): {}", region.data(), region.end().base(), offset, strerror(errno));
 
-            mprotect(mirror, region.size(), PROT_READ | PROT_WRITE | PROT_EXEC);
+            mprotect(mirror, region.size(), PROT_READ | PROT_WRITE);
 
             mirrorOffset += region.size();
         }
@@ -491,7 +494,17 @@ namespace skyline::kernel {
     }
 
     void MemoryManager::SvcMapMemory(span<u8> src, span<u8> dst) {
-        MapStackMemory(dst);
+        std::unique_lock lock(mutex);
+
+        MapInternal(std::pair<u8 *, ChunkDescriptor>{
+            src.data(),
+            ChunkDescriptor{
+                .size = src.size(),
+                .state = memory::states::Stack,
+                .permission = {true, true, false},
+                .isSrcMergeAllowed = false
+            }
+        });
 
         std::memcpy(dst.data(), src.data(), src.size());
 
@@ -527,7 +540,11 @@ namespace skyline::kernel {
     }
 
     void MemoryManager::RemoveReference(const std::shared_ptr<type::KMemory>& ptr) {
-        memoryRefs.erase(std::remove(memoryRefs.begin(), memoryRefs.end(), ptr), memoryRefs.end());
+        auto i = std::find(memoryRefs.begin(), memoryRefs.end(), ptr);
+
+        if (*i == ptr) [[likely]]
+            memoryRefs.erase(i);
+//        memoryRefs.erase(std::remove(memoryRefs.begin(), memoryRefs.end(), ptr), memoryRefs.end());
     }
 
     size_t MemoryManager::GetUserMemoryUsage() {

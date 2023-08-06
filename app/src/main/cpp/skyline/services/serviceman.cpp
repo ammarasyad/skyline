@@ -58,6 +58,7 @@
 #include "mii/IStaticService.h"
 #include "olsc/IOlscServiceForApplication.h"
 #include "psm/IPsmServer.h"
+#include "clkrst/IClkrstManager.h"
 #include "serviceman.h"
 
 #define SERVICE_CASE(class, name, ...) \
@@ -144,6 +145,7 @@ namespace skyline::service {
             SERVICE_CASE(ro::IRoInterface, "ldr:ro")
             SERVICE_CASE(mii::IStaticService, "mii:e")
             SERVICE_CASE(mii::IStaticService, "mii:u")
+            SERVICE_CASE(clkrst::IClkrstManager, "clkrst")
             SERVICE_CASE(olsc::IOlscServiceForApplication, "olsc:u")
             SERVICE_CASE(psm::IPsmServer, "psm")
             default:

@@ -75,6 +75,7 @@ namespace skyline::kernel::svc {
         if (!chunk.second.state.permissionChangeAllowed) [[unlikely]] {
             state.ctx->gpr.w0 = result::InvalidState;
             Logger::Warn("Permission change not allowed for chunk at: 0x{:X} (state: 0x{:X})", chunk.first, chunk.second.state.value);
+            return;
         }
 
         state.process->memory.SetRegionPermission(span<u8>(address, size), permission);
@@ -150,7 +151,7 @@ namespace skyline::kernel::svc {
             return;
         }
 
-        if (source >= (source + size) || !state.process->memory.AddressSpaceContains(span<u8>{source, size})) [[unlikely]] {
+        if (destination >= (destination + size) || !state.process->memory.AddressSpaceContains(span<u8>{destination, size})) [[unlikely]] {
             state.ctx->gpr.w0 = result::InvalidCurrentMemory;
             Logger::Warn("Invalid address and size combination: 0x{:X} (0x{:X} bytes)", source, size);
             return;
@@ -182,8 +183,8 @@ namespace skyline::kernel::svc {
     }
 
     void UnmapMemory(const DeviceState &state) {
-        auto source{reinterpret_cast<u8 *>(state.ctx->gpr.x1)};
         auto destination{reinterpret_cast<u8 *>(state.ctx->gpr.x0)};
+        auto source{reinterpret_cast<u8 *>(state.ctx->gpr.x1)};
         size_t size{state.ctx->gpr.x2};
 
         if (!util::IsPageAligned(destination) || !util::IsPageAligned(source)) [[unlikely]] {
@@ -235,8 +236,7 @@ namespace skyline::kernel::svc {
 
             memInfo = {
                 .address = addressSpaceEnd,
-//                .size = ~addressSpaceEnd + 1,
-                .size = 0 - addressSpaceEnd,
+                .size = ~addressSpaceEnd + 1,
                 .type = static_cast<u32>(memory::MemoryType::Reserved),
             };
 
