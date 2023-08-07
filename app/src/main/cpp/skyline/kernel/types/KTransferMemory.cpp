@@ -9,7 +9,7 @@ namespace skyline::kernel::type {
         : KMemory(state, KType::KTransferMemory, size) {}
 
     u8 *KTransferMemory::Map(span<u8> map, memory::Permission permission) {
-        std::memcpy(map.data(), host.data(), map.size());
+        std::memcpy(host.data(), map.data(), map.size());
         u8 *result{KMemory::Map(map, permission)};
 
         auto old{state.process->memory.Get(map.data()).value()};
@@ -21,7 +21,7 @@ namespace skyline::kernel::type {
             return result;
         }
 
-        Logger::Warn("Attempted to map transfer memory that is not allowed to be mapped: 0x{:X}", map.data());
+        Logger::Warn("Attempted to map transfer memory that is not allowed to be mapped: 0x{:X} (0x{:X} bytes)", map.data(), map.size());
         return nullptr;
     }
 
@@ -30,7 +30,7 @@ namespace skyline::kernel::type {
         guest = span<u8>{};
 
         switch (chunkDescriptor.state.type) {
-            case memory::MemoryType::CodeMutable:
+            case memory::MemoryType::CodeData:
                 state.process->memory.MapMutableCodeMemory(map);
                 break;
             case memory::MemoryType::Heap:
@@ -49,7 +49,7 @@ namespace skyline::kernel::type {
                 Logger::Warn("Failed to unmap transfer memory: {}", strerror(errno));
 
             switch (chunkDescriptor.state.type) {
-                case memory::MemoryType::CodeMutable:
+                case memory::MemoryType::CodeData:
                     state.process->memory.MapMutableCodeMemory(guest);
                     break;
                 case memory::MemoryType::Heap:

@@ -100,7 +100,7 @@ namespace skyline {
             Io = 0x1,
             Static = 0x2,
             Code = 0x3,
-            CodeMutable = 0x4,
+            CodeData = 0x4,
             Heap = 0x5,
             SharedMemory = 0x6,
             Alias = 0x7,
@@ -116,7 +116,7 @@ namespace skyline {
             NonSecureIpc = 0x11,
             NonDeviceIpc = 0x12,
             KernelStack = 0x13,
-            CodeReadOnly = 0x14,
+            Generated = 0x14,
             CodeWritable = 0x15,
             Coverage = 0x16,
             Insecure = 0x17
@@ -145,6 +145,7 @@ namespace skyline {
                 bool ipcSendAllowed : 1; //!< If this block is allowed to be sent as an IPC buffer with flags=0
                 bool nonDeviceIpcSendAllowed : 1; //!< If this block is allowed to be sent as an IPC buffer with flags=3
                 bool nonSecureIpcSendAllowed : 1; //!< If this block is allowed to be sent as an IPC buffer with flags=1
+                bool codeMapped : 1; //!< If this block is currently mapped
                 bool processPermissionChangeAllowed : 1; //!< If the application can use svcSetProcessMemoryPermission on this block
                 bool mapAllowed : 1; //!< If the application can use svcMapMemory on this block
                 bool unmapProcessCodeMemoryAllowed : 1; //!< If the application can use svcUnmapProcessCodeMemory on this block
@@ -157,6 +158,7 @@ namespace skyline {
                 bool mapProcessAllowed : 1; //!< If the application can use svcMapProcessMemory on this block
                 bool attributeChangeAllowed : 1; //!< If the application can use svcSetMemoryAttribute on this block
                 bool codeMemoryAllowed : 1; //!< If the application can use svcCreateCodeMemory on this block
+                bool isLinearMapped : 1; //!< If this block is linear mapped
             };
             u32 value;
         };
@@ -171,7 +173,7 @@ namespace skyline {
             constexpr MemoryState Io{0x00002001};
             constexpr MemoryState Static{0x00042002};
             constexpr MemoryState Code{0x00DC7E03};
-            constexpr MemoryState CodeMutable{0x03FEBD04};
+            constexpr MemoryState CodeData{0x03FEBD04};
             constexpr MemoryState Heap{0x037EBD05};
             constexpr MemoryState SharedMemory{0x00402006};
             constexpr MemoryState Alias{0x00482907};
@@ -187,7 +189,7 @@ namespace skyline {
             constexpr MemoryState NonSecureIpc{0x005C3811};
             constexpr MemoryState NonDeviceIpc{0x004C2812};
             constexpr MemoryState KernelStack{0x00002013};
-            constexpr MemoryState CodeReadOnly{0x00402214};
+            constexpr MemoryState Generated{0x00402214};
             constexpr MemoryState CodeWritable{0x00402015};
             constexpr MemoryState Coverage{0x00002016};
             constexpr MemoryState Insecure{0x05583817};

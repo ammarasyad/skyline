@@ -48,7 +48,7 @@ namespace skyline::service::am {
         } operationMode;
 
         enum class CpuBoostMode : u32 {
-            Normal = 0,     //!< The device runs at stock CPU and CPU clocks
+            Normal = 0,     //!< The device runs at stock CPU and GPU clocks
             FastLoad = 1,   //!< The device runs at boosted CPU clocks and minimum GPU clocks
             PowerSaving = 2 //!< The device runs at stock CPU clocks and minimum GPU clocks
         } cpuBoostMode;

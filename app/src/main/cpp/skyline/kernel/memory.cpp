@@ -12,9 +12,8 @@ namespace skyline::kernel {
     MemoryManager::~MemoryManager() noexcept {
         if (base.valid() && !base.empty())
             munmap(reinterpret_cast<void *>(base.data()), base.size());
-        if (addressSpaceType != memory::AddressSpaceType::AddressSpace39Bit)
-            if (codeBase36Bit.valid() && !codeBase36Bit.empty())
-                munmap(reinterpret_cast<void *>(codeBase36Bit.data()), codeBase36Bit.size());
+        if (addressSpaceType != memory::AddressSpaceType::AddressSpace39Bit && codeBase36Bit.valid() && !codeBase36Bit.empty())
+            munmap(reinterpret_cast<void *>(codeBase36Bit.data()), codeBase36Bit.size());
     }
 
     constexpr size_t RegionAlignment{1ULL << 21}; //!< The minimum alignment of a HOS memory region
@@ -54,13 +53,12 @@ namespace skyline::kernel {
                 auto temp{std::next(firstChunkBase)};
 
                 while (temp->first != lastChunkBase->first) {
-                    auto tmp{temp++};
-                    if ((tmp->second.state != memory::states::Unmapped) != unmapped) {
+                    if ((temp->second.state != memory::states::Unmapped) != unmapped) {
                         protection = true;
-//                        break;
+                        break;
                     }
 
-//                    temp++;
+                    temp++;
                 }
 
                 chunks.erase(std::next(firstChunkBase), lastChunkBase);
@@ -108,7 +106,7 @@ namespace skyline::kernel {
 
         if (protection)
             if (mprotect(chunk.first, chunk.second.size, !unmapped ? PROT_READ | PROT_WRITE | PROT_EXEC : PROT_NONE)) [[unlikely]]
-                Logger::Warn("Failed to set memory protection: {}", strerror(errno));
+                Logger::Warn("Failed to set memory protection at 0x{:X} ({} bytes): {}", chunk.first, chunk.second.size, strerror(errno));
     }
 
     void MemoryManager::ForeachChunk(span<u8> memory, auto editCallback) {
@@ -264,7 +262,7 @@ namespace skyline::kernel {
                     throw exception("Guest VMM size has exceeded host carveout size: 0x{:X}/0x{:X} (Code: 0x{:X}/0x{:X})", size, base.size(), code.size(), CodeRegionSize);
 
                 if (size != base.size()) [[likely]]
-                    munmap(base.end().base(), base.size() - size);
+                    munmap(base.end().base(), size - base.size());
                 break;
             }
 
@@ -397,7 +395,7 @@ namespace skyline::kernel {
             memory.data(),
             ChunkDescriptor{
                 .size = memory.size(),
-                .state = memory::states::CodeMutable,
+                .state = memory::states::CodeData,
                 .permission = {true, true, false},
             }
         });
@@ -491,15 +489,22 @@ namespace skyline::kernel {
             if (chunk.second.state != memory::states::Unmapped)
                 FreeMemory(span<u8>(chunk.first, chunk.second.size));
         });
+
+        MapInternal(std::pair<u8 *, ChunkDescriptor>(
+            memory.data(),{
+                .size = memory.size(),
+                .permission = {false, false, false},
+                .state = memory::states::Unmapped
+            }));
     }
 
     void MemoryManager::SvcMapMemory(span<u8> src, span<u8> dst) {
         std::unique_lock lock(mutex);
 
         MapInternal(std::pair<u8 *, ChunkDescriptor>{
-            src.data(),
+            dst.data(),
             ChunkDescriptor{
-                .size = src.size(),
+                .size = dst.size(),
                 .state = memory::states::Stack,
                 .permission = {true, true, false},
                 .isSrcMergeAllowed = false

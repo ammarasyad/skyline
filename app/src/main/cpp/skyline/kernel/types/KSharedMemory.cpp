@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
-#include <android/sharedmem.h>
-#include <unistd.h>
-#include <asm/unistd.h>
 #include "KSharedMemory.h"
 #include "KProcess.h"
 

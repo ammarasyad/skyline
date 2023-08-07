@@ -257,7 +257,7 @@ namespace skyline::service {
                             break;
 
                         case ipc::ControlCommand::QueryPointerBufferSize:
-                            response.Push<u32>(0x8000);
+                            response.Push<u16>(0x8000);
                             break;
 
                         default:
