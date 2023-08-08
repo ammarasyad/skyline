@@ -106,7 +106,7 @@ namespace skyline::loader {
         process->memory.MapCodeMemory(span<u8>{executableBase + executable.ro.offset, roSize}, memory::Permission{true, false, false}); // R--
         Logger::Debug("Successfully mapped section .rodata @ 0x{:X}, Size = 0x{:X}", executableBase + executable.ro.offset, roSize);
 
-        process->memory.MapCodeMemory(span<u8>{executableBase + executable.data.offset, dataSize}, memory::Permission{true, true, false}); // RW-
+        process->memory.MapMutableCodeMemory(span<u8>{executableBase + executable.data.offset, dataSize}); // RW-
         Logger::Debug("Successfully mapped section .data + .bss @ 0x{:X}, Size = 0x{:X}", executableBase + executable.data.offset, dataSize);
 
         size_t size{patch.size + hookSize + textSize + roSize + dataSize};
