@@ -545,11 +545,11 @@ namespace skyline::kernel {
     }
 
     void MemoryManager::RemoveReference(const std::shared_ptr<type::KMemory>& ptr) {
-        auto i = std::find(memoryRefs.begin(), memoryRefs.end(), ptr);
-
-        if (*i == ptr) [[likely]]
-            memoryRefs.erase(i);
-//        memoryRefs.erase(std::remove(memoryRefs.begin(), memoryRefs.end(), ptr), memoryRefs.end());
+//        auto i = std::find(memoryRefs.begin(), memoryRefs.end(), ptr);
+//
+//        if (*i == ptr) [[likely]]
+//            memoryRefs.erase(i);
+        memoryRefs.erase(std::remove(memoryRefs.begin(), memoryRefs.end(), ptr), memoryRefs.end());
     }
 
     size_t MemoryManager::GetUserMemoryUsage() {
