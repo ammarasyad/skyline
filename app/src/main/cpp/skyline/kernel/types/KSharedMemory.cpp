@@ -17,7 +17,7 @@ namespace skyline::kernel::type {
     void KSharedMemory::Unmap(span<u8> map) {
         KMemory::Unmap(map);
         guest = span<u8>{};
-        state.process->memory.UnmapMemory(guest);
+        state.process->memory.UnmapMemory(map);
     }
 
     KSharedMemory::~KSharedMemory() {

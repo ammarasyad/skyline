@@ -19,6 +19,14 @@ namespace skyline::service::account {
         return {};
     }
 
+    Result IManagerForApplication::EnsureIdTokenCacheAsync(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        return {};
+    }
+
+    Result IManagerForApplication::LoadIdTokenCache(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
+        return {};
+    }
+
     Result IManagerForApplication::StoreOpenContext(type::KSession &session, ipc::IpcRequest &request, ipc::IpcResponse &response) {
         openedUsers->clear();
         openedUsers->push_back(constant::DefaultUserId);
