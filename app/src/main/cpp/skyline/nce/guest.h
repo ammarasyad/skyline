@@ -21,6 +21,7 @@ namespace skyline {
 
             void operator=(u32 value) {
                 lower = value;
+                upper = 0;
             }
         };
 
