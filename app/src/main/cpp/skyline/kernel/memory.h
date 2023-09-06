@@ -205,7 +205,7 @@ namespace skyline {
 
     namespace kernel {
         struct ChunkDescriptor {
-            bool isSrcMergeAllowed;
+            bool isSrcMergeAllowed = true;
             size_t size;
             memory::Permission permission;
             memory::MemoryState state;

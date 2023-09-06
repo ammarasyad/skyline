@@ -153,6 +153,12 @@ namespace skyline::kernel::svc {
 
         if (destination >= (destination + size) || !state.process->memory.AddressSpaceContains(span<u8>{destination, size})) [[unlikely]] {
             state.ctx->gpr.w0 = result::InvalidCurrentMemory;
+            Logger::Warn("Invalid address and size combination: 0x{:X} (0x{:X} bytes)", destination, size);
+            return;
+        }
+
+        if (source >= (source + size) || !state.process->memory.AddressSpaceContains(span<u8>{source, size})) [[unlikely]] {
+            state.ctx->gpr.w0 = result::InvalidCurrentMemory;
             Logger::Warn("Invalid address and size combination: 0x{:X} (0x{:X} bytes)", source, size);
             return;
         }

@@ -127,7 +127,7 @@ namespace skyline::kernel {
             size -= chunkSize;
         }
 
-        while (size > 0) {
+        while (size) {
             std::pair<u8 *, ChunkDescriptor> temp(*chunkBase);
 
             if (size >= chunkBase->second.size) [[likely]] {
@@ -499,17 +499,7 @@ namespace skyline::kernel {
     }
 
     void MemoryManager::SvcMapMemory(span<u8> src, span<u8> dst) {
-        std::unique_lock lock(mutex);
-
-        MapInternal(std::pair<u8 *, ChunkDescriptor>{
-            dst.data(),
-            ChunkDescriptor{
-                .size = dst.size(),
-                .state = memory::states::Stack,
-                .permission = {true, true, false},
-                .isSrcMergeAllowed = false
-            }
-        });
+        MapStackMemory(dst);
 
         std::memcpy(dst.data(), src.data(), src.size());
 
